@@ -51,6 +51,7 @@
     {%- set current_year = '1970' %}
     {%- set current_month = '01' %}
     {%- set count_post = 1 %}
+    {%- set archive_posts = [] %}
 
     {%- for post in page.posts.toArray() %}
 
@@ -58,13 +59,47 @@
       {%- set month = date(post.date, 'MM') %}
 
       {%- if not is_year() %}
-
+        
         {%- if year !== current_year or month !== current_month %}
 
           {%- if current_year !== '1970' %}
               <small>( {{ count_post }} )</small>
+              {%- for divTag in archive_posts %}
+                <article class="item normal" itemscope itemtype="http://schema.org/Article">
+                  <div class="meta">
+                    <time itemprop="dateCreated"
+                          datetime="{{ moment(divTag.date).format() }}"
+                          content="{{ date(divTag.date, config.date_format) }}">
+                      {{ date(divTag.date, 'MM-DD') }}
+                    </time>
+                    {%- if divTag.categories and divTag.categories.length %}
+                      {%- set cat_length = divTag.categories.length %}
+                      {%- for cat in divTag.categories.toArray() %}
+                        {%- if loop.index == cat_length and cat.name !== page.category %}
+                        <span><a href="{{ url_for(cat.path) }}">{{ cat.name }}</a></span>
+                        {%- endif %}
+                      {%- endfor %}
+                    {%- endif %}
+                  </div>
+
+                  <div class="title">
+                    {%- if divTag.link %}
+                      {%- set postTitleIcon = '<i class="ic i-link-alt"></i>' %}
+                      {%- set postText = divTag.title or divTag.link %}
+                      {{ _url(divTag.link, postText + postTitleIcon, {class: 'external', itemprop: 'url'}) }}
+                    {% else %}
+                      <a href="{{ url_for(divTag.path) }}" itemprop="url">
+                        <span itemprop="name">{{ divTag.title or __('divTag.untitled') }}</span>
+                      </a>
+                    {%- endif %}
+                  </div>
+                </article>
+
+              {%- endfor %}
             </h3>
           {%- endif %}
+          {% set archive_posts = [] %}
+
 
           <h3 class="item section">
             <a href="{{ url_for(config.archive_dir + '/' + year )}}">{{ year }} {{__('symbol.year')}}</a><small>/</small><a href="{{ url_for(config.archive_dir + '/' + year  + '/' + month)}}">{{ month }} {{__('symbol.month')}}</a>
@@ -75,6 +110,7 @@
           {%- set count_post = count_post + 1 %}
         {%- endif %}
 
+        {%- set _ = archive_posts.push(post) %}
       {% else %}
 
         {%- if year !== current_year and not is_year()%}
@@ -121,6 +157,38 @@
     {%- endfor %}
     {%- if not is_year() %}
         <small>( {{ count_post }} )</small>
+          {%- for divTag in archive_posts %}
+                <article class="item normal" itemscope itemtype="http://schema.org/Article">
+                  <div class="meta">
+                    <time itemprop="dateCreated"
+                          datetime="{{ moment(divTag.date).format() }}"
+                          content="{{ date(divTag.date, config.date_format) }}">
+                      {{ date(divTag.date, 'MM-DD') }}
+                    </time>
+                    {%- if divTag.categories and divTag.categories.length %}
+                      {%- set cat_length = divTag.categories.length %}
+                      {%- for cat in divTag.categories.toArray() %}
+                        {%- if loop.index == cat_length and cat.name !== page.category %}
+                        <span><a href="{{ url_for(cat.path) }}">{{ cat.name }}</a></span>
+                        {%- endif %}
+                      {%- endfor %}
+                    {%- endif %}
+                  </div>
+
+                  <div class="title">
+                    {%- if divTag.link %}
+                      {%- set postTitleIcon = '<i class="ic i-link-alt"></i>' %}
+                      {%- set postText = divTag.title or divTag.link %}
+                      {{ _url(divTag.link, postText + postTitleIcon, {class: 'external', itemprop: 'url'}) }}
+                    {% else %}
+                      <a href="{{ url_for(divTag.path) }}" itemprop="url">
+                        <span itemprop="name">{{ divTag.title or __('divTag.untitled') }}</span>
+                      </a>
+                    {%- endif %}
+                  </div>
+                </article>
+
+              {%- endfor %}
       </h3>
     {%- endif %}
   </div>
